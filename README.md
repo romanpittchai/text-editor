@@ -12,4 +12,4 @@ This is a small project created for educational purposes. It can be freely downl
 ### The author of the project
 _Bogatyrev Roman_
 
-> ***_Примечание:_***  _the project uses MIT License.
+> ***_Note:_***  _the project uses MIT License.
