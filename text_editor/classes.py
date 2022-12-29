@@ -1,56 +1,46 @@
-import tkinter as tk
-from tkinter import Tk, Frame, Menu, Text, Scrollbar ,filedialog, ttk, messagebox
-from tkinter.messagebox import showinfo
-
+import os
+from tkinter import Frame, Menu, Text, Scrollbar, filedialog, messagebox, Tk, Toplevel
 
 class TextEditor(Frame):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-    
-    def initUI(self):
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.up_menu()
+
+    def up_menu(self):
+        """ need text. docstring"""
         self.master.title("Simply text editor")
-        main_menu = Menu(self.master)
+        main_menu = Menu(self)
         self.master.config(menu=main_menu)
         file_menu = Menu(main_menu, tearoff=0)
-        file_menu.add_command(label="New file", command=self.new_file)
-        file_menu.add_command(label="Open file", command=self.select_and_open_file)
+        file_menu.add_command(label="New file", command=self.new_window)
+        file_menu.add_command(label="Open file",
+                              command=self.select_and_open_file)
         file_menu.add_command(label="Close file", command=self.close_file)
         file_menu.add_separator()
         file_menu.add_command(label="Save", command=self.save_file)
         file_menu.add_command(label="Save as", command=self.save_as_file)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.exit)
+        file_menu.add_command(label="Exit", command=self.exit_from_editor)
         main_menu.add_cascade(label="File", menu=file_menu)
-    
 
-    def exit(self):
-        self.quit()
-
-
-class TextNotes(TextEditor):
-    def __init__(self):
-        super().__init__()
-        
-        self.txt()
-
-    def txt(self):
         txtFrame = Frame(self.master)
-        txtFrame.pack(side = "bottom", fill="both", expand=True)
+        txtFrame.pack(side="bottom", fill="both", expand=True)
         global txt_notes
         txt_notes = Text(master=txtFrame, wrap="word")
         scrollbar = Scrollbar(master=txtFrame, command=txt_notes.yview)
         txt_notes['yscrollcommand'] = scrollbar.set
         scrollbar.pack(side="right", fill="y")
-        txt_notes.pack(side = "bottom", fill="both", expand=True)
+        txt_notes.pack(side="bottom", fill="both", expand=True)
 
+    def exit_from_editor(self):
+        """ need text. docstring"""
+        self.quit()
 
     def info(self):
-        title="Save"
-        massage="Save the file?"
+        """ need text. docstring"""
+        title = "Save"
+        massage = "Save the file?"
         return messagebox.askyesno(title, massage)
-
-
 
     def select_and_open_file(self):
         """ need text. docstring"""
@@ -70,9 +60,9 @@ class TextNotes(TextEditor):
         else:
             return
 
-    def new_file(self):
+    def new_window(self):
         """ need text. docstring. """
-        txt_notes.delete("0.0", "end-1c")
+        main()
 
 
     def local(self, filepath_open):
@@ -84,17 +74,16 @@ class TextNotes(TextEditor):
         """ need text. docstring"""
         global filepath_open
         if filepath_open:
-            title="Save"
-            massage="Save the file?"
             flag = self.info()
             if flag:
                 self.save_file()
-                txt_notes.delete("0.0", "end-1c")
+                txt_notes.delete("1.0", "end-1c")
+                filepath_open = self.local(filepath_open)
+            else:
+                txt_notes.delete("1.0", "end-1c")
                 filepath_open = self.local(filepath_open)
         else:
-            return
-       
-
+            pass
 
     def save_as_file(self):
         """ need text. docstring"""
@@ -106,11 +95,22 @@ class TextNotes(TextEditor):
                 inFile.close()
         else:
             return
-                
-    
+
     def save_file(self):
         """ need text. docstring"""
-        text = txt_notes.get("0.0", "end-1c")
+        text = txt_notes.get("1.0", "end-1c")
         with open(filepath_open, "w") as outInfile:
             outInfile.write(text)
             outInfile.close()
+
+    
+
+
+def main():
+    root = Tk()
+    TextEditor(root).pack()
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
