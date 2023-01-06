@@ -134,6 +134,7 @@ class TextEditor(Frame):
             self.save_as_file()
 
     def func_for_copy_cut(self) -> bool:
+        """ General function for copying and cutting. """
         try:
             global text
             text = txt_notes.selection_get()
