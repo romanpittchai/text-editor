@@ -16,30 +16,75 @@ class TextEditor(Frame):
         file_menu = Menu(main_menu, tearoff=0)
         file_menu_correction = Menu(main_menu, tearoff=0)
         file_menu_data = Menu(main_menu, tearoff=0)
-        file_menu.add_command(label="New file", command=self.new_file)
+        file_menu.add_command(label="New file", command=self.new_file,
+                              accelerator="Ctrl+N")
         file_menu.add_command(label="Open file",
-                              command=self.select_and_open_file)
+                              command=self.select_and_open_file,
+                              accelerator="Ctrl+O")
         file_menu.add_separator()
-        file_menu.add_command(label="Save", command=self.save_file)
-        file_menu.add_command(label="Save as", command=self.save_as_file)
+        file_menu.add_command(label="Save", command=self.save_file,
+                              accelerator="Ctrl+S")
+        file_menu.add_command(label="Save as", command=self.save_as_file,
+                              accelerator="Ctrl+Shift+S")
+        #self.bind_all("<Control-Shift-s>", self.save_as_file)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.exit_from_editor)
-
-        file_menu_correction.add_command(label="Cut", command=self.cut_text)
-        file_menu_correction.add_command(label="Copy", command=self.copy_text)
+        file_menu.add_command(label="Exit", command=self.exit_from_editor,
+                              accelerator="Ctrl+Q")
+        file_menu_correction.add_command(label="Cut", command=self.cut_text,
+                                         accelerator="Ctrl+X")
+        file_menu_correction.add_command(label="Copy", command=self.copy_text,
+                                         accelerator="Ctrl+C")
         file_menu_correction.add_separator()
         file_menu_correction.add_command(label="Paste",
-                                         command=self.paste_text)
+                                         command=self.paste_text,
+                                         accelerator="Ctrl+V")
         file_menu_correction.add_command(label="Select text",
-                                         command=self.select_text)
+                                         command=self.select_text,
+                                         accelerator="Ctrl+A")
+        def keypress_non_shift(event):
+            keycodes = {
+                'V': 86,
+                'C': 67,
+                'X': 88,
+                'O': 79,
+                'N': 78,
+                'S': 83,
+                'Q': 81,
+                'A': 65,
+                'Shift-S': 83,
+                }
+            if event.keycode == keycodes['V']:
+                self.paste_text()
+            elif event.keycode == keycodes['C']:
+                self.copy_text()
+            elif event.keycode == keycodes['X']:
+                self.cut_text()
+            elif event.keycode == keycodes['O']:
+                self.select_and_open_file()
+            elif event.keycode == keycodes['N']:
+                self.new_file()
+            elif event.keycode == keycodes['S']:
+                self.save_file()
+                print("111")
+            elif event.keycode == keycodes['Q']:
+                self.exit_from_editor()
+        self.bind_all("<Control-KeyPress>", keypress_non_shift)
 
+        def keypress_with_shift(event):
+             keycodes = {
+                 'Shift-S': 83
+                 }
+             if event.keycode == keycodes['Shift-S']:
+                self.save_as_file()
+        self.bind_all("<Control-Shift-KeyPress>", keypress_with_shift)
+        #self.bind_all("<Control-Shift-KeyPress>", keypress)
         file_menu_data.add_command(label="Github", command=self.url)
         file_menu_data.add_command(label="Data", command=self.data)
 
         main_menu.add_cascade(label="File", menu=file_menu)
         main_menu.add_cascade(label="Сorrection", menu=file_menu_correction)
         main_menu.add_cascade(label="Data", menu=file_menu_data)
-
+        
         txtFrame = Frame(self.master)
         txtFrame.pack(side="bottom", fill="both", expand=True)
         global txt_notes
@@ -48,16 +93,16 @@ class TextEditor(Frame):
         txt_notes['yscrollcommand'] = scrollbar.set
         scrollbar.pack(side="right", fill="y")
         txt_notes.pack(side="bottom", fill="both", expand=True)
-
+    
     global filetypes
     filetypes = (
         ('Text files', '*.txt'),
         ('All files', '*.*')
     )
 
-    def check_gl_var_filepath_open(self) -> bool:
+    def check_gl_var(self, global_v) -> bool:
         """ Verification of the presence of a global variable. """
-        if 'filepath_open' in globals():
+        if global_v in globals():
             return True
         else:
             return False
@@ -90,7 +135,7 @@ class TextEditor(Frame):
 
     def new_file(self) -> None:
         """ Creating a new text field. """
-        gl_check = self.check_gl_var()
+        gl_check = self.check_gl_var("filepath_open")
         if gl_check:
             global filepath_open
             if filepath_open:
@@ -123,7 +168,7 @@ class TextEditor(Frame):
 
     def save_file(self) -> None:
         """ The 'save' function. """
-        gl_check = self.check_gl_var()
+        gl_check = self.check_gl_var("filepath_open")
         if gl_check:
             if filepath_open:
                 text = txt_notes.get("1.0", "end-1c")
@@ -132,12 +177,16 @@ class TextEditor(Frame):
                     outInfile.close()
         elif not gl_check:
             self.save_as_file()
+            print('!!!')
 
     def func_for_copy_cut(self) -> bool:
         """ General function for copying and cutting. """
         try:
             global text
             text = txt_notes.selection_get()
+            self.clipboard_clear()
+            self.clipboard_append(text)
+            self.update()
             global index_first
             index_first = txt_notes.index("sel.first")
             global index_last
@@ -162,11 +211,10 @@ class TextEditor(Frame):
     def paste_text(self):
         """ Paste text. """
         index_cursor = txt_notes.index('insert')
-        try:
+        global_bool = self.check_gl_var("text")
+        if not global_bool:
+            text = self.clipboard_get()
             txt_notes.insert(index_cursor, text)
-        except Exception as exc:
-            print(exc)
-            return
 
     def select_text(self) -> None:
         """ Select text. """
