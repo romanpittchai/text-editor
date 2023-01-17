@@ -77,7 +77,6 @@ class TextEditor(Frame):
              if event.keycode == keycodes['Shift-S']:
                 self.save_as_file()
         self.bind_all("<Control-Shift-KeyPress>", keypress_with_shift)
-        #self.bind_all("<Control-Shift-KeyPress>", keypress)
         file_menu_data.add_command(label="Github", command=self.url)
         file_menu_data.add_command(label="Data", command=self.data)
 
@@ -93,12 +92,11 @@ class TextEditor(Frame):
         txt_notes['yscrollcommand'] = scrollbar.set
         scrollbar.pack(side="right", fill="y")
         txt_notes.pack(side="bottom", fill="both", expand=True)
-    
-    global filetypes
-    filetypes = (
-        ('Text files', '*.txt'),
-        ('All files', '*.*')
-    )
+
+        self.filetypes = (
+            ('Text files', '*.txt'),
+            ('All files', '*.*')
+        )
 
     def check_gl_var(self, global_v) -> bool:
         """ Verification of the presence of a global variable. """
@@ -120,7 +118,7 @@ class TextEditor(Frame):
     def select_and_open_file(self) -> None:
         """ Selecting and opening a file. """
         global filepath_open
-        filepath_open = filedialog.askopenfilename(filetypes=filetypes)
+        filepath_open = filedialog.askopenfilename(filetypes=self.filetypes)
         if filepath_open:
             with open(filepath_open, "r") as outFile:
                 text = outFile.read()
@@ -160,7 +158,7 @@ class TextEditor(Frame):
         text = txt_notes.get("1.0", "end-1c")
         global filepath_open
         if text:
-            filepath_open = filedialog.asksaveasfilename(filetypes=filetypes)
+            filepath_open = filedialog.asksaveasfilename(filetypes=self.filetypes)
             if filepath_open:
                 with open(filepath_open, "w") as inFile:
                     inFile.write(text)
@@ -177,7 +175,6 @@ class TextEditor(Frame):
                     outInfile.close()
         elif not gl_check:
             self.save_as_file()
-            print('!!!')
 
     def func_for_copy_cut(self) -> bool:
         """ General function for copying and cutting. """
@@ -210,11 +207,14 @@ class TextEditor(Frame):
 
     def paste_text(self):
         """ Paste text. """
-        index_cursor = txt_notes.index('insert')
-        global_bool = self.check_gl_var("text")
-        if not global_bool:
-            text = self.clipboard_get()
-            txt_notes.insert(index_cursor, text)
+        text = self.clipboard_get()
+        gl_check = self.check_gl_var("text")
+        if not gl_check:
+            index_cursor = txt_notes.index('insert')
+            a = txt_notes.insert(index_cursor, text)
+            print('1')
+            print(a)
+        
 
     def select_text(self) -> None:
         """ Select text. """
