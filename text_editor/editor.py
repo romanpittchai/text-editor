@@ -41,9 +41,18 @@ class TextEditor(Frame):
         file_menu_correction.add_command(label="Select text",
                                          command=self.select_text,
                                          accelerator="Ctrl+A")
+        
+        
         def keypress_non_shift(event):
             keycodes = {
-                'V': 86,
+                'Cyrillic_es': 1747,
+                'Cyrillic_che': 1758,
+                'Cyrillic_shcha': 1757,
+                'Cyrillic_te': 1748,
+                'Cyrillic_yeru': 1753,
+                'Cyrillic_shorti': 1738,
+                'Cyrillic_a': 1729,
+                'Cyrillic_em': 1741,
                 'C': 67,
                 'X': 88,
                 'O': 79,
@@ -51,30 +60,35 @@ class TextEditor(Frame):
                 'S': 83,
                 'Q': 81,
                 'A': 65,
-                'Shift-S': 83,
+                'V': 86,
                 }
-            if event.keycode == keycodes['V']:
+            print(event.keycode)
+            if event.keycode == keycodes['V'] or event.keycode == keycodes['Cyrillic_es']:
                 self.paste_text()
-            elif event.keycode == keycodes['C']:
+            elif event.keycode == keycodes['C'] or event.keycode == keycodes['Cyrillic_es']:
                 self.copy_text()
-            elif event.keycode == keycodes['X']:
+            elif event.keycode == keycodes['X'] or event.keycode == keycodes['Cyrillic_che']:
                 self.cut_text()
-            elif event.keycode == keycodes['O']:
+            elif event.keycode == keycodes['O'] or event.keycode == keycodes['Cyrillic_shcha']:
                 self.select_and_open_file()
-            elif event.keycode == keycodes['N']:
+            elif event.keycode == keycodes['N'] or event.keycode == keycodes['Cyrillic_te']:
                 self.new_file()
-            elif event.keycode == keycodes['S']:
+            elif event.keycode == keycodes['S'] or event.keycode == keycodes['Cyrillic_yeru']:
                 self.save_file()
-                print("111")
-            elif event.keycode == keycodes['Q']:
+            elif event.keycode == keycodes['A'] or event.keycode == keycodes['Cyrillic_a']:
+                self.select_text()
+            elif event.keycode == keycodes['Q'] or event.keycode == keycodes['Cyrillic_shorti']:
                 self.exit_from_editor()
+            
         self.bind_all("<Control-KeyPress>", keypress_non_shift)
+
 
         def keypress_with_shift(event):
              keycodes = {
-                 'Shift-S': 83
+                 'S': 83,
+                 'Cyrillic_yeru': 1753,
                  }
-             if event.keycode == keycodes['Shift-S']:
+             if event.keycode == keycodes['S'] or event.keycode == keycodes['Cyrillic_yeru']:
                 self.save_as_file()
         self.bind_all("<Control-Shift-KeyPress>", keypress_with_shift)
         file_menu_data.add_command(label="Github", command=self.url)
@@ -107,7 +121,8 @@ class TextEditor(Frame):
 
     def exit_from_editor(self) -> None:
         """ Exiting the application. """
-        self.quit()
+        self.master.destroy()
+    
 
     def info(self):
         """ For the function 'askyesno'. """
@@ -145,6 +160,15 @@ class TextEditor(Frame):
                 else:
                     txt_notes.delete("1.0", "end-1c")
                     filepath_open = self.local(filepath_open)
+            else:
+                flag = self.info()
+                if flag:
+                    self.save_file()
+                    txt_notes.delete("1.0", "end-1c")
+                    filepath_open = self.local(filepath_open)
+                else:
+                    txt_notes.delete("1.0", "end-1c")
+                    filepath_open = self.local(filepath_open)
         elif not gl_check:
             text = txt_notes.get("1.0", "end-1c")
             if text:
@@ -173,6 +197,8 @@ class TextEditor(Frame):
                 with open(filepath_open, "w") as outInfile:
                     outInfile.write(text)
                     outInfile.close()
+            else:
+                self.save_as_file()
         elif not gl_check:
             self.save_as_file()
 
@@ -207,14 +233,34 @@ class TextEditor(Frame):
 
     def paste_text(self):
         """ Paste text. """
+        global text
         text = self.clipboard_get()
-        gl_check = self.check_gl_var("text")
-        if not gl_check:
-            index_cursor = txt_notes.index('insert')
-            a = txt_notes.insert(index_cursor, text)
-            print('1')
-            print(a)
+        print(text, 'g')
         
+        text_local = self.clipboard_get()
+        print(text_local, 'l')
+        if text != text_local:
+            print(text, "1")
+            print(text_local, "2")
+            gl_check = self.check_gl_var("text")
+            if gl_check:
+                #self.clipboard_clear()
+                text = self.clipboard_get()
+                index_cursor = txt_notes.index('insert')
+                txt_notes.insert(index_cursor, text)
+            else:
+                #self.clipboard_clear()
+                text = self.clipboard_get()
+                index_cursor = txt_notes.index('insert')
+                txt_notes.insert(index_cursor, text)
+        else:
+            self.clipboard_clear()
+            #index_cursor = txt_notes.index('insert')
+            #text = self.clipboard_get()
+            txt_notes.insert(index_cursor, '')
+            print(text, "!")
+            print(text_local, "!!")
+            self.clipboard_append(text_local)
 
     def select_text(self) -> None:
         """ Select text. """
