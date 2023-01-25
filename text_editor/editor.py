@@ -40,27 +40,22 @@ class TextEditor(Frame):
         file_menu_correction.add_command(label="Select text",
                                          command=self.select_text,
                                          accelerator="Ctrl+A")
+        
+        def key_non_shift(event):
+            keys_code = {
+                (67, 54): self.copy_text,
+                (88, 53): self.cut_text,
+                (79, 32): self.select_and_open_file,
+                (78, 57): self.new_file,
+                (83, 39): self.save_file,
+                (65, 38): self.select_text,
+                (81, 24): self.exit_from_editor,
+            }
+            for key_coder, key_func in keys_code.items():
+                if event.keycode in key_coder:
+                    key_func()
 
-        def keypress_non_shift(event):
-            print(event.keycode)
-            if event.keycode == 67 or event.keycode == 99 or event.keycode == 54:
-                self.copy_text()
-            elif event.keycode == 88 or event.keycode == 120 or event.keycode == 53:
-                self.cut_text()
-            elif event.keycode == 79 or event.keycode == 111 or event.keycode == 32:
-                self.select_and_open_file()
-            elif event.keycode == 78 or event.keycode == 110 or event.keycode == 57:
-                self.new_file()
-            elif event.keycode == 83 or event.keycode == 115 or event.keycode == 39:
-                self.save_file()
-            elif (event.keycode == 65 or event.keycode == 97
-                  or event.keycode == 38):
-                self.select_text()
-            elif event.keycode == 81 or event.keycode == 113 or event.keycode == 24:
-                self.exit_from_editor()
-
-        self.bind_all("<Control-KeyPress>", keypress_non_shift)
-
+        self.bind_all("<Control-KeyPress>", key_non_shift)
 
         def keypress_with_shift(event):
              if event.keycode == 83 or event.keycode == 115:
@@ -112,7 +107,7 @@ class TextEditor(Frame):
                 outFile.close()
 
     def local(self) -> None:
-        """ To reset the global variable. """
+        """ To reset the variable. """
         return None
 
     def new_file(self) -> None:
