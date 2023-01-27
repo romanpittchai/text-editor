@@ -44,26 +44,26 @@ class TextEditor(Frame):
         file_menu_data.add_command(label="Github", command=self.url)
         file_menu_data.add_command(label="Data", command=self.data)
 
-        mouse_menu.add_command(label ="Save", command=self.save_file)
-        mouse_menu.add_command(label ="Save as", command=self.save_as_file)
+        mouse_menu.add_command(label="Save", command=self.save_file)
+        mouse_menu.add_command(label="Save as", command=self.save_as_file)
         mouse_menu.add_separator()
-        mouse_menu.add_command(label ="Select text", command=self.select_text)
+        mouse_menu.add_command(label="Select text", command=self.select_text)
         mouse_menu.add_command(label="Cut", command=self.cut_text)
         mouse_menu.add_command(label="Copy", command=self.copy_text)
-        mouse_menu.add_command(label ="Paste", command=self.paste_text)
+        mouse_menu.add_command(label="Paste", command=self.paste_text)
 
         def mouse_popup(event):
             try:
                 mouse_menu.tk_popup(event.x_root, event.y_root)
             finally:
                 mouse_menu.grab_release()
-  
+
         self.bind_all("<Button-3>", mouse_popup)
 
         main_menu.add_cascade(label="File", menu=file_menu)
         main_menu.add_cascade(label="Сorrection", menu=file_menu_correction)
         main_menu.add_cascade(label="Data", menu=file_menu_data)
-        
+
         txtFrame = Frame(self.master)
         txtFrame.pack(side="bottom", fill="both", expand=True)
         self.txt_notes = Text(master=txtFrame, wrap="word")
@@ -87,14 +87,14 @@ class TextEditor(Frame):
         self.bind_all("<Control-KeyPress>", key_non_shift)
 
         def keypress_with_shift(event):
-             if event.keycode == 83 or event.keycode == 115:
+            if event.keycode == 83 or event.keycode == 115:
                 self.save_as_file()
 
         self.bind_all("<Control-Shift-KeyPress>", keypress_with_shift)
 
-        self.filetypes =  (
-            ('Text files', '.txt'), 
-            ('All files', '.*') 
+        self.filetypes = (
+            ('Text files', '.txt'),
+            ('All files', '.*')
         )
 
         self.index_first = 0.0
@@ -103,9 +103,8 @@ class TextEditor(Frame):
 
     def exit_from_editor(self) -> None:
         """ Exiting the application. """
-        self.master.title(f"Simply text editor - closing")
+        self.master.title("Simply text editor - closing")
         self.master.destroy()
-    
 
     def info(self):
         """ For the function 'askyesno'. """
@@ -115,7 +114,8 @@ class TextEditor(Frame):
 
     def select_and_open_file(self) -> None:
         """ Selecting and opening a file. """
-        self.filepath_open = filedialog.askopenfilename(filetypes=self.filetypes, defaultextension='')
+        self.filepath_open = (filedialog.askopenfilename
+                              (filetypes=self.filetypes, defaultextension=''))
         self.master.title(f"Simply text editor - {self.filepath_open}")
         if self.filepath_open:
             with open(self.filepath_open, "r") as outFile:
@@ -145,10 +145,11 @@ class TextEditor(Frame):
             self.txt_notes.delete("1.0", "end-1c")
         self.master.title("Simply text editor - New")
 
-
     def save_as_file(self) -> None:
         """ The 'save as...' function. """
-        self.filepath_open = filedialog.asksaveasfilename(filetypes=self.filetypes, defaultextension='initialfile')
+        self.filepath_open = (filedialog.asksaveasfilename
+                              (filetypes=self.filetypes,
+                               defaultextension='initialfile'))
         if self.filepath_open:
             self.master.title(f"Simply text editor - {self.filepath_open}")
             with open(self.filepath_open, "w") as inFile:
@@ -174,7 +175,6 @@ class TextEditor(Frame):
         self.index_first = self.txt_notes.index("sel.first")
         self.index_last = self.txt_notes.index("sel.last")
         self.txt_notes.selection_clear()
-
 
     def cut_text(self) -> None:
         """ Cut text. """
