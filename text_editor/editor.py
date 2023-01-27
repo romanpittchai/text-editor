@@ -15,6 +15,7 @@ class TextEditor(Frame):
         self.master.config(menu=main_menu)
         file_menu = Menu(main_menu, tearoff=0)
         file_menu_correction = Menu(main_menu, tearoff=0)
+        mouse_menu = Menu(main_menu, tearoff=0)
         file_menu_data = Menu(main_menu, tearoff=0)
         file_menu.add_command(label="New file", command=self.new_file,
                               accelerator="Ctrl+N")
@@ -40,11 +41,39 @@ class TextEditor(Frame):
         file_menu_correction.add_command(label="Select text",
                                          command=self.select_text,
                                          accelerator="Ctrl+A")
+        file_menu_data.add_command(label="Github", command=self.url)
+        file_menu_data.add_command(label="Data", command=self.data)
+
+        mouse_menu.add_command(label ="Save", command=self.save_file)
+        mouse_menu.add_command(label ="Save as", command=self.save_as_file)
+        mouse_menu.add_separator()
+        mouse_menu.add_command(label ="Select text", command=self.select_text)
+        mouse_menu.add_command(label="Cut", command=self.cut_text)
+        mouse_menu.add_command(label="Copy", command=self.copy_text)
+        mouse_menu.add_command(label ="Paste", command=self.paste_text)
+
+        def mouse_popup(event):
+            try:
+                mouse_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                mouse_menu.grab_release()
+  
+        self.bind_all("<Button-3>", mouse_popup)
+
+        main_menu.add_cascade(label="File", menu=file_menu)
+        main_menu.add_cascade(label="Сorrection", menu=file_menu_correction)
+        main_menu.add_cascade(label="Data", menu=file_menu_data)
         
+        txtFrame = Frame(self.master)
+        txtFrame.pack(side="bottom", fill="both", expand=True)
+        self.txt_notes = Text(master=txtFrame, wrap="word")
+        scrollbar = Scrollbar(master=txtFrame, command=self.txt_notes.yview)
+        self.txt_notes['yscrollcommand'] = scrollbar.set
+        scrollbar.pack(side="right", fill="y")
+        self.txt_notes.pack(side="bottom", fill="both", expand=True)
+
         def key_non_shift(event):
             keys_code = {
-                (67, 54): self.copy_text,
-                (88, 53): self.cut_text,
                 (79, 32): self.select_and_open_file,
                 (78, 57): self.new_file,
                 (83, 39): self.save_file,
@@ -63,31 +92,18 @@ class TextEditor(Frame):
 
         self.bind_all("<Control-Shift-KeyPress>", keypress_with_shift)
 
-        file_menu_data.add_command(label="Github", command=self.url)
-        file_menu_data.add_command(label="Data", command=self.data)
-
-        main_menu.add_cascade(label="File", menu=file_menu)
-        main_menu.add_cascade(label="Сorrection", menu=file_menu_correction)
-        main_menu.add_cascade(label="Data", menu=file_menu_data)
-        
-        txtFrame = Frame(self.master)
-        txtFrame.pack(side="bottom", fill="both", expand=True)
-        self.txt_notes = Text(master=txtFrame, wrap="word")
-        scrollbar = Scrollbar(master=txtFrame, command=self.txt_notes.yview)
-        self.txt_notes['yscrollcommand'] = scrollbar.set
-        scrollbar.pack(side="right", fill="y")
-        self.txt_notes.pack(side="bottom", fill="both", expand=True)
-
-        self.filetypes = (
-            ('Text files', '*.txt'),
-            ('All files', '*.*')
+        self.filetypes =  (
+            ('Text files', '.txt'), 
+            ('All files', '.*') 
         )
+
         self.index_first = 0.0
         self.last_index = 0.0
         self.filepath_open = None
 
     def exit_from_editor(self) -> None:
         """ Exiting the application. """
+        self.master.title(f"Simply text editor - closing")
         self.master.destroy()
     
 
@@ -99,7 +115,8 @@ class TextEditor(Frame):
 
     def select_and_open_file(self) -> None:
         """ Selecting and opening a file. """
-        self.filepath_open = filedialog.askopenfilename(filetypes=self.filetypes)
+        self.filepath_open = filedialog.askopenfilename(filetypes=self.filetypes, defaultextension='')
+        self.master.title(f"Simply text editor - {self.filepath_open}")
         if self.filepath_open:
             with open(self.filepath_open, "r") as outFile:
                 self.txt_notes.delete("1.0", "end-1c")
@@ -126,12 +143,14 @@ class TextEditor(Frame):
             if flag:
                 self.save_as_file()
             self.txt_notes.delete("1.0", "end-1c")
+        self.master.title("Simply text editor - New")
 
 
     def save_as_file(self) -> None:
         """ The 'save as...' function. """
-        self.filepath_open = filedialog.asksaveasfilename(filetypes=self.filetypes)
+        self.filepath_open = filedialog.asksaveasfilename(filetypes=self.filetypes, defaultextension='initialfile')
         if self.filepath_open:
+            self.master.title(f"Simply text editor - {self.filepath_open}")
             with open(self.filepath_open, "w") as inFile:
                 inFile.write(self.txt_notes.get("1.0", "end-1c"))
                 inFile.close()
@@ -139,6 +158,7 @@ class TextEditor(Frame):
     def save_file(self) -> None:
         """ The 'save' function. """
         if self.filepath_open:
+            self.master.title(f"Simply text editor - {self.filepath_open}")
             with open(self.filepath_open, "w") as outInfile:
                 outInfile.write(self.txt_notes.get("1.0", "end-1c"))
                 outInfile.close()
@@ -147,25 +167,19 @@ class TextEditor(Frame):
 
     def func_for_copy_cut(self) -> bool:
         """ General function for copying and cutting. """
-        try:
-            self.clipboard_clear()
-            self.clipboard_append(self.txt_notes.selection_get())
-            self.update()
-            self.index_first = self.txt_notes.index("sel.first")
-            self.index_last = self.txt_notes.index("sel.last")
-            self.txt_notes.selection_clear()
-            text_bool = True
-        except Exception as exc:
-            print(exc)
-            text_bool = False
-        return text_bool
+        self.clipboard_append('')
+        self.clipboard_clear()
+        self.clipboard_append(self.txt_notes.selection_get())
+        self.update()
+        self.index_first = self.txt_notes.index("sel.first")
+        self.index_last = self.txt_notes.index("sel.last")
+        self.txt_notes.selection_clear()
+
 
     def cut_text(self) -> None:
         """ Cut text. """
-        text_bool = self.func_for_copy_cut()
-        print(text_bool)
-        #if text_bool:
-        #    self.txt_notes.delete(self.index_first, self.index_last)
+        self.func_for_copy_cut()
+        self.txt_notes.delete(self.index_first, self.index_last)
 
     def copy_text(self) -> None:
         """ Copy text. """
@@ -178,7 +192,6 @@ class TextEditor(Frame):
 
     def select_text(self) -> None:
         """ Select text. """
-        print('!!!')
         self.txt_notes.tag_add("sel", "1.0", "end-1c")
 
     def data(self) -> None:
